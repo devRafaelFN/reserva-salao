@@ -11,6 +11,7 @@ import {
 import { Login as LoginIcon } from "@mui/icons-material";
 import { z } from "zod";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const emailSchema = z.email();
 const passwordSchema = z.string().min(4);
@@ -31,6 +32,7 @@ interface LoginResponse {
 }
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -91,6 +93,9 @@ const Login: React.FC = () => {
       // Axios automaticamente trata HTTP 200-299 como sucesso
       const data = response.data;
       setSuccess(data.message || "Login realizado com sucesso!");
+
+      // Redirecionar para a página home após login bem-sucedido
+      navigate('/home');
     } catch (error) {
       // Axios automaticamente trata códigos de erro como exceção
       if (axios.isAxiosError(error)) {
