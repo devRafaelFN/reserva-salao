@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
-
+// Importar o client gerado em src/generated/prisma (use Node.js-friendly output)
+const { PrismaClient } = require('../src/generated/prisma');
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
 
 async function createAdminUser() {
   const adminEmail = 'admin@admin.com';
@@ -49,7 +49,8 @@ async function createAdminUser() {
   } catch (error) {
     console.error('❌ Erro ao criar/atualizar usuário admin:', error);
   } finally {
-    await prisma.$disconnect();
+    // Como estamos reutilizando o prisma compartilhado, desconectar apenas se existir a função
+    if (prisma && prisma.$disconnect) await prisma.$disconnect();
   }
 }
 

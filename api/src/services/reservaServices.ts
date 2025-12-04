@@ -381,6 +381,23 @@ const reservaService = {
     });
   },
 
+  /**
+   * Remove permanentemente reservas com status 'cancelada'.
+   * Se `before` for fornecido, remove apenas reservas com data < before.
+   * Retorna o número de registros removidos.
+   */
+  async purgeCancelled(before?: Date): Promise<number> {
+    return prisma.$transaction(async (tx) => {
+      if (before) {
+        const res = await tx.$executeRawUnsafe('DELETE FROM reservas WHERE status = $1 AND data < $2', 'cancelada', before);
+        return Number(res || 0);
+      } else {
+        const res = await tx.$executeRawUnsafe('DELETE FROM reservas WHERE status = $1', 'cancelada');
+        return Number(res || 0);
+      }
+    });
+  },
+
   async verificarConflitoHorario({
     data,
     horaInicio,
@@ -415,6 +432,7 @@ const reservaService = {
         users u ON r."userId" = u.id
       WHERE 
         r.data = $1
+        AND r.status != 'cancelada'
         AND (
           -- Caso 1: O horário de início está dentro de uma reserva existente
           (r."horaInicio" <= $2 AND r."horaFim" > $2) OR

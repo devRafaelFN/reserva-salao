@@ -13,6 +13,11 @@ export const userSchema = z.object({
     .min(10, { message: "Telefone inválido" })
     .max(20, { message: "Telefone muito longo" }),
 
+  password: z.string()
+    .min(6, { message: "A senha deve ter pelo menos 6 caracteres" })
+    .max(100, { message: "A senha não pode ter mais de 100 caracteres" })
+    .optional(),
+
   apartamento: z.number()
     .int({ message: "O número do apartamento deve ser um número inteiro" })
     .positive({ message: "O número do apartamento deve ser positivo" })

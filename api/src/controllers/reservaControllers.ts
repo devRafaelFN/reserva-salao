@@ -25,8 +25,26 @@ const validarHorarioFuncionamento = (hora: Date) => {
 const reservaController = {
   getReservas: [
     async (req: Request, res: Response): Promise<void> => {
-      const reservas: Reserva[] = await reservaService.getReservas();
-      res.json(reservas);
+
+      try {
+        const includeCancelled = String(req.query.includeCancelled || '').toLowerCase() === 'true';
+        const statusFilter = typeof req.query.status === 'string' ? req.query.status : undefined;
+
+        let reservas: Reserva[] = [];
+
+        if (statusFilter) {
+          reservas = await reservaService.getReservas({ status: statusFilter });
+        } else {
+          reservas = await reservaService.getReservas();
+          if (!includeCancelled) {
+            reservas = reservas.filter(r => r.status !== 'cancelada');
+          }
+        }
+
+        res.json(reservas);
+      } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar reservas' });
+      }
     }
   ],
 
@@ -135,8 +153,39 @@ const reservaController = {
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         const id = res.locals.validatedId;
+        console.log('[reservaController.updateReserva] id=', id, 'body=', req.body);
         const updateData = { ...req.body };
-        
+
+
+        const bodyKeys = Object.keys(req.body || {});
+        const isStatusOnly = bodyKeys.length === 1 && bodyKeys[0] === 'status';
+        if (isStatusOnly) {
+          // valida status
+          if (updateData.status && !STATUS_PERMITIDOS.includes(updateData.status)) {
+            res.status(400).json({ 
+              message: "Erro ao atualizar reserva",
+              details: `Status inválido. Os status permitidos são: ${STATUS_PERMITIDOS.join(', ')}`
+            });
+            return;
+          }
+          try {
+            const reserva: Reserva = await reservaService.updateReserva(id, { status: updateData.status });
+            res.json(reserva);
+            return;
+          } catch (error: any) {
+            console.error('[reservaController.updateReserva][status-only] error:', error);
+            if (error.code === 'P2025') {
+              res.status(404).json({ 
+                message: "Reserva não encontrada",
+                details: "O ID fornecido não corresponde a nenhuma reserva"
+              });
+              return;
+            }
+            next(error);
+            return;
+          }
+        }
+
         // Busca a reserva existente
         const reservaExistente = await reservaService.getReservaById(id);
         if (!reservaExistente) {
@@ -221,6 +270,7 @@ const reservaController = {
         const reserva: Reserva = await reservaService.updateReserva(id, updateData);
         res.json(reserva);
       } catch (error: any) {
+        console.error('[reservaController.updateReserva] error: ', error);
         if (error.code === 'P2025') {
           res.status(404).json({ 
             message: "Reserva não encontrada",
@@ -281,6 +331,20 @@ const reservaController = {
         } else {
           next(error);
         }
+      }
+    }
+  ],
+
+  purgeCancelled: [
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+
+        const beforeQuery = typeof req.query.before === 'string' ? req.query.before : undefined;
+        const beforeDate = beforeQuery ? new Date(beforeQuery) : undefined;
+        const deleted = await reservaService.purgeCancelled(beforeDate);
+        res.json({ deleted });
+      } catch (error) {
+        next(error);
       }
     }
   ],

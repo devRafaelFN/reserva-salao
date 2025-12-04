@@ -122,6 +122,13 @@ router.put("/reservas/:id", reservaController.updateReserva);
 router.delete("/reservas/:id", reservaController.deleteReserva);
 
 /**
+ * DELETE /reservas/purge-cancelled
+ * Remove permanentemente reservas com status 'cancelada'.
+ * Query optional: ?before=YYYY-MM-DD para remover apenas antes dessa data.
+ */
+router.delete("/reservas/purge-cancelled", reservaController.purgeCancelled);
+
+/**
  * @swagger
  * components:
  *   schemas:

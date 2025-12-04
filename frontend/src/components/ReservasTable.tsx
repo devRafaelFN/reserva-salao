@@ -56,7 +56,7 @@ export default function ReservasTable({
                 <Box display="flex" justifyContent="center" gap={1}>
                   <Tooltip title="Editar"><IconButton size="small" onClick={() => onEdit(r)}><EditIcon /></IconButton></Tooltip>
                   <Tooltip title="Remover"><IconButton size="small" onClick={() => onDelete(r.id)}><DeleteIcon /></IconButton></Tooltip>
-                  {r.status !== "aprovado" && <Tooltip title="Aprovar"><IconButton size="small" onClick={() => onApprove(r.id)}><CheckIcon /></IconButton></Tooltip>}
+                  {(r.status !== "confirmada" && r.status !== "aprovado") && <Tooltip title="Aprovar"><IconButton size="small" onClick={() => onApprove(r.id)}><CheckIcon /></IconButton></Tooltip>}
                 </Box>
               </TableCell>
             </TableRow>

@@ -1,5 +1,6 @@
 
 import prisma from "../db/prisma";
+import * as bcrypt from 'bcrypt';
 import { User } from "../generated/prisma";
 
 const userService = {
@@ -23,9 +24,13 @@ const userService = {
     apartamento: number;
     password?: string;
   }): Promise<User> {
+    // Se uma senha for fornecida, criptografa; caso contrário usa senha padrão criptografada
+    const rawPassword = data.password || 'senha_padrao';
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
     const userData = {
       ...data,
-      password: data.password || 'senha_padrao' // Adiciona uma senha padrão se não for fornecida
+      password: hashedPassword
     };
     return prisma.user.create({ data: userData });
   },
