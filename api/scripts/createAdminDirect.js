@@ -1,5 +1,6 @@
 // Script para criar um usuário administrador
-const { PrismaClient } = require('@prisma/client');
+// Importar o client gerado em src/generated/prisma para execução direta em Node.js
+const { PrismaClient } = require('../src/generated/prisma');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -25,7 +26,7 @@ async function main() {
   } catch (error) {
     console.error('Erro ao criar usuário admin:', error);
   } finally {
-    await prisma.$disconnect();
+    if (prisma && prisma.$disconnect) await prisma.$disconnect();
   }
 }
 

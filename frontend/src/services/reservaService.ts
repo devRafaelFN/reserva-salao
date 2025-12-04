@@ -1,7 +1,7 @@
 import axios from "axios"
 import type { Reserva } from "../types/reserva"
 
-const API_BASE = "http://localhost:3333"
+const API_BASE = "http://localhost:3000/api"
 
 export const getReservas = async (): Promise<Reserva[]> => {
   const res = await axios.get<Reserva[]>(`${API_BASE}/reservas?_expand=usuario`)
@@ -28,7 +28,8 @@ export const deleteReserva = async (id: number): Promise<void> => {
 }
 
 export const approveReserva = async (id: number): Promise<Reserva> => {
-  const res = await axios.patch<Reserva>(`${API_BASE}/reservas/${id}`, { status: "aprovado" })
+
+  const res = await axios.put<Reserva>(`${API_BASE}/reservas/${id}`, { status: "confirmada" })
   return res.data
 }
 

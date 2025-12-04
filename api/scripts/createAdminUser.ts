@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../src/db/prisma';
 import * as bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
 
 async function createAdminUser() {
   const adminEmail = 'admin@admin.com';
@@ -49,7 +47,7 @@ async function createAdminUser() {
   } catch (error) {
     console.error('❌ Erro ao criar/atualizar usuário admin:', error);
   } finally {
-    await prisma.$disconnect();
+    if (prisma && prisma.$disconnect) await prisma.$disconnect();
   }
 }
 

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react"
-import { Box, Paper, Typography, Button, Tabs, Tab, TextField, MenuItem, Select, FormControl, InputLabel, Grid, Snackbar, Alert } from "@mui/material"
+import { Box, Paper, Typography, Button, Tabs, Tab, TextField, MenuItem, Select, FormControl, InputLabel, Snackbar, Alert } from "@mui/material"
+import { useNavigate } from "react-router-dom"
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ReservasTable from "../components/ReservasTable"
 import ReservaModal from "../components/ReservaModal"
 import ReservasCalendar from "../components/ReservasCalendar"
@@ -7,9 +9,9 @@ import type { Reserva } from "../types/reserva"
 import { getReservas, deleteReserva, approveReserva } from "../services/reservaService"
 import { getUsers } from "../services/userService"
 import type { User } from "../types/user"
-import EditIcon from "@mui/icons-material/Edit"
 
 export default function Reservas() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState(0)
   const [reservas, setReservas] = useState<Reserva[]>([])
   const [filtroStatus, setFiltroStatus] = useState<string>("todos")
@@ -18,6 +20,7 @@ export default function Reservas() {
   const [editing, setEditing] = useState<Reserva | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [snack, setSnack] = useState<{open:boolean; msg:string; severity:"success"|"error"}>({open:false,msg:"",severity:"success"})
+  const [searchQuery, setSearchQuery] = useState<string>("")
 
   const carregar = async () => {
     try {
@@ -37,8 +40,11 @@ export default function Reservas() {
   }, [])
 
   const aplicarFiltros = () => {
-    return reservas.filter(r => (filtroStatus === "todos" ? true : r.status === filtroStatus))
+    const q = searchQuery.trim().toLowerCase();
+    return reservas
+      .filter(r => (filtroStatus === "todos" ? true : r.status === filtroStatus || (filtroStatus === 'confirmada' && r.status === 'aprovado')))
       .filter(r => (filtroApto === "todos" ? true : r.usuario?.apartamento === filtroApto))
+      .filter(r => (q === "" ? true : (r.usuario?.nome || "").toLowerCase().includes(q)))
   }
 
   const handleDelete = async (id: number) => {
@@ -65,8 +71,11 @@ export default function Reservas() {
     <Box p={3} display="flex" justifyContent="center" bgcolor="background.default" minHeight="100vh">
       <Box width="100%" maxWidth={1100}>
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Gestão de Reservas - Salão de Festas</Typography>
+          <Box className="app-hero" display="flex" justifyContent="space-between" alignItems="center">
+            <Box display="flex" alignItems="center" gap={1}>
+              <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>Voltar</Button>
+              <Typography variant="h6">Gestão de Reservas - Salão de Festas</Typography>
+            </Box>
             <Box display="flex" gap={1}>
               <Button variant="contained" onClick={() => { setEditing(null); setModalOpen(true) }}>Nova Reserva</Button>
             </Box>
@@ -79,19 +88,20 @@ export default function Reservas() {
 
           {tab === 0 && (
             <Box mt={2}>
-              <Grid container spacing={2} mb={2}>
-                <Grid item xs={12} sm={4}>
+              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, mb: 2 }}>
+                <Box>
                   <FormControl fullWidth>
                     <InputLabel id="status-label">Status</InputLabel>
                     <Select labelId="status-label" value={filtroStatus} label="Status" onChange={(e) => setFiltroStatus(String(e.target.value))}>
                       <MenuItem value="todos">Todos</MenuItem>
                       <MenuItem value="pendente">Pendente</MenuItem>
-                      <MenuItem value="aprovado">Aprovado</MenuItem>
+                      <MenuItem value="confirmada">Aprovado</MenuItem>
                       <MenuItem value="cancelado">Cancelado</MenuItem>
+                      <MenuItem value="finalizada">Finalizada</MenuItem>
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={4}>
+                </Box>
+                <Box>
                   <FormControl fullWidth>
                     <InputLabel id="apto-label">Apartamento</InputLabel>
                     <Select labelId="apto-label" value={filtroApto} label="Apartamento" onChange={(e) => setFiltroApto(e.target.value === "todos" ? "todos" : Number(e.target.value))}>
@@ -99,11 +109,11 @@ export default function Reservas() {
                       {Array.from(new Set(users.map(u => u.apartamento))).map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField fullWidth label="Pesquisar morador" onChange={(e) => { const q = e.target.value.toLowerCase(); setReservas(prev => prev.map(x => x)) ; setReservas(prev => prev.filter(r => r.usuario?.nome.toLowerCase().includes(q) || !q)) }} />
-                </Grid>
-              </Grid>
+                </Box>
+                <Box>
+                  <TextField fullWidth label="Pesquisar morador" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                </Box>
+              </Box>
 
               <ReservasTable reservas={aplicarFiltros()} onEdit={(r) => { setEditing(r); setModalOpen(true) }} onDelete={handleDelete} onApprove={handleApprove} />
             </Box>

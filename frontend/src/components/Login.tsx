@@ -7,8 +7,10 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
-import { Login as LoginIcon } from "@mui/icons-material";
+import { Login as LoginIcon, Visibility, VisibilityOff } from "@mui/icons-material";
 import { z } from "zod";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +37,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -93,9 +96,8 @@ const Login: React.FC = () => {
       // Axios automaticamente trata HTTP 200-299 como sucesso
       const data = response.data;
       setSuccess(data.message || "Login realizado com sucesso!");
-
-      // Redirecionar para a página home após login bem-sucedido
-      navigate('/home');
+      // Redirecionar para a página principal após login bem-sucedido
+      navigate("/home");
     } catch (error) {
       // Axios automaticamente trata códigos de erro como exceção
       if (axios.isAxiosError(error)) {
@@ -158,7 +160,7 @@ const Login: React.FC = () => {
           />
           <TextField
             label="Senha"
-            type="password"
+            type={showPassword ? "text" : "password"}
             fullWidth
             margin="normal"
             value={password}
@@ -166,6 +168,20 @@ const Login: React.FC = () => {
             error={password.length > 0 && !validatePassword(password).isValid}
             helperText={validatePassword(password).error}
             disabled={isLoading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    onClick={() => setShowPassword((s) => !s)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"
