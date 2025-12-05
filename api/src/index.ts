@@ -6,11 +6,12 @@ import authRoutes from "./routes/authRoutes";
 import { setupSwagger } from "./swagger";
 
 const app: Express = express();
-const port: number = 3000;
+const port = Number(process.env.PORT || 3000);
 
-// Habilita o CORS
+// Habilita o CORS — permite origem do frontend (development local ou production via env var)
+const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: allowedOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
