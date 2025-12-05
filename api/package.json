@@ -4,7 +4,7 @@
   "description": "Sistema de reserva de salão de festas",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "prisma:migrate": "prisma migrate dev"
