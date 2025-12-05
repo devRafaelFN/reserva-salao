@@ -8,6 +8,12 @@ import { setupSwagger } from "./swagger";
 const app: Express = express();
 const port: number = 3000;
 
+import { Request, Response } from 'express'; // <--- Garanta esta importação
+
+app.get('/', (req: Request, res: Response) => { // <--- Tipagem explícita aqui
+    res.send('API is running!');
+});
+
 // Habilita o CORS
 app.use(cors({
   origin: 'http://localhost:5173',
